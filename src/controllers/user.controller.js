@@ -3,42 +3,43 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const { generateJWT } = require("../helpers/create-jwt");
+const { updateMany } = require("../models/user.model");
 
 //Create Read Update Delete
 
 const createUser = async (req, res) => {
   //if (req.user.rol === "ADMIN") {
-    const { email, password } = req.body;
-    try {
-      let user = await User.findOne({ email: email });
-      if (user) {
-        return res.status(400).send({
-          message: "Un usuario ya existe con este correo",
-          ok: false,
-          user: user,
-        });
-      }
-      user = new User(req.body);
-
-      //Encriptar la contraseña
-      const saltos = bcrypt.genSaltSync();
-      user.password = bcrypt.hashSync(password, saltos);
-
-      //Guardar Usuarios
-      user = await user.save();
-
-      //generar token
-      const token = await generateJWT(user.id, user.username, user.email);
-      res.status(200).send({
-        message: `Usuario ${user.username} creado correctamente`,
-        user,
-        token: token,
+  const { email, password } = req.body;
+  try {
+    let user = await User.findOne({ email: email });
+    if (user) {
+      return res.status(400).send({
+        message: "Un usuario ya existe con este correo",
+        ok: false,
+        user: user,
       });
-    } catch (err) {
-      throw new Error(err);
     }
+    user = new User(req.body);
+
+    //Encriptar la contraseña
+    const saltos = bcrypt.genSaltSync();
+    user.password = bcrypt.hashSync(password, saltos);
+
+    //Guardar Usuarios
+    user = await user.save();
+
+    //generar token
+    const token = await generateJWT(user.id, user.username, user.email);
+    res.status(200).send({
+      message: `Usuario ${user.username} creado correctamente`,
+      user,
+      token: token,
+    });
+  } catch (err) {
+    throw new Error(err);
+  }
   //} else {
-    /*return res.status(500).send({
+  /*return res.status(500).send({
       message: "Este usuario no tiene permiso para crear mas usuarios",
     });*/
   //}
@@ -150,8 +151,8 @@ const loginUser = async (req, res) => {
 const agregarMascota = async (req, res) => {
   try {
     const id = req.params.id;
-    const {nombre,edad,comida} = req.body;
-    
+    const { nombre, edad, comida } = req.body;
+
     const userMascota = await User.findByIdAndUpdate(
       id,
       {
@@ -162,14 +163,36 @@ const agregarMascota = async (req, res) => {
             comida: comida,
           },
         },
-      }, {new: true}
+      },
+      { new: true }
     );
-      if(!userMascota){
-        return res.status(404).send({msg: 'usuario no encontrado'})
-      }
+    if (!userMascota) {
+      return res.status(404).send({ msg: "usuario no encontrado" });
+    }
 
-      return res.status(200).send({userMascota});
+    return res.status(200).send({ userMascota });
+  } catch (err) {
+    throw new Error(err);
+  }
+};
 
+const eliminarMascota = async (req, res) => {
+  const id = req.params.id;
+  const { idMascota } = req.body;
+  try {
+    const deleteMascota = await User.updateOne(
+      { id },
+      {
+        $pull: { mascotas: { _id: idMascota } },
+      },
+      { new: true, multi: false }
+    );
+
+    if (!deleteMascota) {
+      return res.status(404).send({ msg: "no existe este usuario" });
+    }
+
+    return res.status(200).send({ deleteMascota });
   } catch (err) {
     throw new Error(err);
   }
@@ -181,5 +204,6 @@ module.exports = {
   updateUser,
   deleteUser,
   loginUser,
-  agregarMascota
+  agregarMascota,
+  eliminarMascota,
 };
