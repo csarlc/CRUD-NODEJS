@@ -7,7 +7,7 @@ const { generateJWT } = require("../helpers/create-jwt");
 //Create Read Update Delete
 
 const createUser = async (req, res) => {
-  if (req.user.rol === "ADMIN") {
+  //if (req.user.rol === "ADMIN") {
     const { email, password } = req.body;
     try {
       let user = await User.findOne({ email: email });
@@ -37,11 +37,11 @@ const createUser = async (req, res) => {
     } catch (err) {
       throw new Error(err);
     }
-  } else {
-    return res.status(500).send({
+  //} else {
+    /*return res.status(500).send({
       message: "Este usuario no tiene permiso para crear mas usuarios",
-    });
-  }
+    });*/
+  //}
 };
 
 const readUsers = async (req, res) => {
@@ -147,10 +147,39 @@ const loginUser = async (req, res) => {
   }
 };
 
+const agregarMascota = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const {nombre,edad,comida} = req.body;
+    
+    const userMascota = await User.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          mascotas: {
+            nombre: nombre,
+            edad: edad,
+            comida: comida,
+          },
+        },
+      }
+    );
+      if(!userMascota){
+        return res.status(404).send({msg: 'usuario no encontrado'})
+      }
+
+      return res.status(200).send({userMascota});
+
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 module.exports = {
   createUser,
   readUsers,
   updateUser,
   deleteUser,
   loginUser,
+  agregarMascota
 };

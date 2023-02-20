@@ -7,6 +7,7 @@ const {
   updateUser,
   deleteUser,
   loginUser,
+  agregarMascota
 } = require("../controllers/user.controller");
 const { check } = require("express-validator");
 const { validateParams } = require("../middlewares/validate-params");
@@ -17,7 +18,7 @@ const api = Router();
 api.post(
   "/create-user",
   [
-    validateJWT,
+    
     check("username", "El username es obligatorio").not().isEmpty(),
     check("password", "El password debe ser mayor a 6 digitos").isLength({
       min: 6,
@@ -44,5 +45,7 @@ api.put(
 );
 api.delete("/delete-user/:id", validateJWT, deleteUser);
 api.post("/login", loginUser);
+
+api.put("/mascota/:id", agregarMascota);
 
 module.exports = api;

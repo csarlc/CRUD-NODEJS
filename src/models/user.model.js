@@ -11,6 +11,11 @@ const UserSchema = Schema({
   email: String,
   password: String,
   rol: String,
+  mascotas: [{
+    nombre: String,
+    edad: Number,
+    comida: String
+  }]
 });
 
 module.exports = mongoose.model("users", UserSchema);
