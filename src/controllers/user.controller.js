@@ -162,7 +162,7 @@ const agregarMascota = async (req, res) => {
             comida: comida,
           },
         },
-      }
+      }, {new: true}
     );
       if(!userMascota){
         return res.status(404).send({msg: 'usuario no encontrado'})
