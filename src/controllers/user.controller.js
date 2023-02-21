@@ -3,7 +3,6 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const { generateJWT } = require("../helpers/create-jwt");
-const { updateMany } = require("../models/user.model");
 
 //Create Read Update Delete
 
@@ -198,6 +197,34 @@ const eliminarMascota = async (req, res) => {
   }
 };
 
+const editarMascota = async (req, res) => {
+  const id = req.params.id;
+  const { idMascota, nombre, edad, comida } = req.body;
+  try {
+    const updateMascota = await User.updateOne(
+      { _id: id, "mascotas._id": idMascota },
+      {
+        $set: {
+          "mascotas.$.nombre": nombre,
+          "mascotas.$.edad": edad,
+          "mascotas.$.comida": comida,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updateMascota) {
+      return res.status(404).send({ msg: "no existe este usuario" });
+    }
+
+    return res
+      .status(200)
+      .send({ updateMascota, msg: "Mascota agregada correctamente" });
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 module.exports = {
   createUser,
   readUsers,
@@ -206,4 +233,5 @@ module.exports = {
   loginUser,
   agregarMascota,
   eliminarMascota,
+  editarMascota,
 };

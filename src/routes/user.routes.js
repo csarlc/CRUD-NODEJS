@@ -9,6 +9,7 @@ const {
   loginUser,
   agregarMascota,
   eliminarMascota,
+  editarMascota,
 } = require("../controllers/user.controller");
 const { check } = require("express-validator");
 const { validateParams } = require("../middlewares/validate-params");
@@ -48,4 +49,5 @@ api.post("/login", loginUser);
 
 api.put("/mascota/:id", agregarMascota);
 api.delete("/mascota-delete/:id", eliminarMascota);
+api.put("/editar-mascota/:id", editarMascota);
 module.exports = api;
