@@ -4,7 +4,7 @@ const moment = require("moment");
 const User = require("../models/user.model");
 
 const validateJWT = async (req = request, res = response, next) => {
-  const token = req.header("x-token");
+  const token = req.header("x-token"); //este token lo envia en los headers
 
   //Si no viene el token
   if (!token) {

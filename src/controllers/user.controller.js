@@ -6,6 +6,25 @@ const { generateJWT } = require("../helpers/create-jwt");
 
 //Create Read Update Delete
 
+//funcion para crear un usuario por defecto
+const adminApp = async (req, res) => {
+  try {
+    let user = new User();
+    user.username = "Administrador";
+    user.password = "123456";
+    user.email = "cl232326@gmail.com";
+    user.rol = "ADMIN";
+    const userEncontrado = await User.findOne({ email: user.email });
+    if (userEncontrado) return console.log("El administrador está listo");
+    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync());
+    user = await user.save();
+    if (!user) return console.log("El administrador no está listo!");
+    return console.log("El administrador está listo!");
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 const createUser = async (req, res) => {
   //if (req.user.rol === "ADMIN") {
   const { email, password } = req.body;
@@ -226,6 +245,7 @@ const editarMascota = async (req, res) => {
 };
 
 module.exports = {
+  adminApp,
   createUser,
   readUsers,
   updateUser,
