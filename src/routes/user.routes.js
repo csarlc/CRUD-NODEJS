@@ -10,6 +10,7 @@ const {
   agregarMascota,
   eliminarMascota,
   editarMascota,
+  printPDF,
 } = require("../controllers/user.controller");
 const { check } = require("express-validator");
 const { validateParams } = require("../middlewares/validate-params");
@@ -17,8 +18,11 @@ const { validateJWT } = require("../middlewares/validate-jwt");
 
 const api = Router();
 
+api.get("/pdf/:namePdf", printPDF);
+
 api.post(
   "/create-user",
+  validateJWT,
   [
     check("username", "El username es obligatorio").not().isEmpty(),
     check("password", "El password debe ser mayor a 6 digitos").isLength({
@@ -36,9 +40,7 @@ api.put(
   [
     validateJWT,
     check("username", "El username es obligatorio").not().isEmpty(),
-    check("password", "El password debe ser mayor a 6 digitos").isLength({
-      min: 6,
-    }),
+
     check("email", "El email es obligatorio").not().isEmpty(),
     validateParams,
   ],

@@ -3,7 +3,8 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const { generateJWT } = require("../helpers/create-jwt");
-
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 //Create Read Update Delete
 
 //funcion para crear un usuario por defecto
@@ -26,41 +27,41 @@ const adminApp = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  //if (req.user.rol === "ADMIN") {
-  const { email, password } = req.body;
-  try {
-    let user = await User.findOne({ email: email });
-    if (user) {
-      return res.status(400).send({
-        message: "Un usuario ya existe con este correo",
-        ok: false,
-        user: user,
+  if (req.user.rol === "ADMIN") {
+    const { email, password } = req.body;
+    try {
+      let user = await User.findOne({ email: email });
+      if (user) {
+        return res.status(400).send({
+          message: "Un usuario ya existe con este correo",
+          ok: false,
+          user: user,
+        });
+      }
+      user = new User(req.body);
+
+      //Encriptar la contraseña
+      const saltos = bcrypt.genSaltSync();
+      user.password = bcrypt.hashSync(password, saltos);
+
+      //Guardar Usuarios
+      user = await user.save();
+
+      //generar token
+      const token = await generateJWT(user.id, user.username, user.email);
+      res.status(200).send({
+        message: `Usuario ${user.username} creado correctamente`,
+        user,
+        token: token,
       });
+    } catch (err) {
+      throw new Error(err);
     }
-    user = new User(req.body);
-
-    //Encriptar la contraseña
-    const saltos = bcrypt.genSaltSync();
-    user.password = bcrypt.hashSync(password, saltos);
-
-    //Guardar Usuarios
-    user = await user.save();
-
-    //generar token
-    const token = await generateJWT(user.id, user.username, user.email);
-    res.status(200).send({
-      message: `Usuario ${user.username} creado correctamente`,
-      user,
-      token: token,
-    });
-  } catch (err) {
-    throw new Error(err);
-  }
-  //} else {
-  /*return res.status(500).send({
+  } else {
+    return res.status(500).send({
       message: "Este usuario no tiene permiso para crear mas usuarios",
-    });*/
-  //}
+    });
+  }
 };
 
 const readUsers = async (req, res) => {
@@ -70,10 +71,13 @@ const readUsers = async (req, res) => {
     if (!users) {
       res.status(404).send({ message: "No hay usuarios disponibles" });
     } else {
-      res.status(200).json({ "usuarios encontrados": users });
+      res.status(200).json({ users: users });
     }
   } catch (err) {
-    throw new Error(err);
+    res.status(404).send({
+      message: "No se pudo listar los usuarios",
+      err,
+    });
   }
 };
 
@@ -83,9 +87,9 @@ const updateUser = async (req, res) => {
       const id = req.params.id;
       const userEdit = { ...req.body };
       //Encriptar Contraseña
-      userEdit.password = userEdit.password
+      /*userEdit.password = userEdit.password
         ? bcrypt.hashSync(userEdit.password, bcrypt.genSaltSync())
-        : userEdit.password;
+        : userEdit.password;*/
       const userComplete = await User.findByIdAndUpdate(id, userEdit, {
         new: true,
       });
@@ -96,7 +100,7 @@ const updateUser = async (req, res) => {
           userComplete.email
         );
         return res.status(200).send({
-          message: "USuario actualizado correctamente",
+          message: "Usuario actualizado correctamente",
           userComplete,
           token,
         });
@@ -125,12 +129,12 @@ const deleteUser = async (req, res) => {
         .status(200)
         .send({ message: "usuario eliminado correctamente", userDelete });
     } catch (err) {
-      throw new Error(err);
+      return res.status(500).send({ message: err });
     }
   } else {
     return res
       .status(500)
-      .send({ message: "este usuario no tiene permisos de ADMIn" });
+      .send({ message: "este usuario no tiene permisos de Administrador" });
   }
 };
 
@@ -244,6 +248,43 @@ const editarMascota = async (req, res) => {
   }
 };
 
+const printPDF = async (req, res) => {
+  try {
+    const namePdf = req.params.namePdf;
+    const users = await User.find();
+    const doc = new PDFDocument();
+    doc.pipe(res);
+    doc.pipe(fs.createWriteStream(`C:/Users/clope/Downloads/${namePdf}.pdf`));
+    doc
+      .fontSize(25)
+      .font("Times-Roman")
+      .fillColor("green")
+      .text("Lista de usuarios", { align: "center" });
+    doc.moveDown();
+
+    users.forEach((user) => {
+      doc
+        .fontSize(16)
+        .fillColor("black")
+        .font("Times-Bold")
+        .text(`Nombre: ${user.username}`, { align: "justify" });
+      doc
+        .fontSize(16)
+        .font("Times-Bold")
+        .text(`Email: ${user.email}`, { align: "justify" });
+      doc
+        .fontSize(16)
+        .font("Times-Bold")
+        .text(`Rol: ${user.rol}`, { align: "justify" });
+      doc.moveDown();
+    });
+
+    doc.end();
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 module.exports = {
   adminApp,
   createUser,
@@ -254,4 +295,5 @@ module.exports = {
   agregarMascota,
   eliminarMascota,
   editarMascota,
+  printPDF,
 };
