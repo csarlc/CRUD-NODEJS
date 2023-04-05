@@ -1,5 +1,5 @@
 "use strict";
-
+const multer = require("multer");
 const { Router } = require("express");
 const {
   createUser,
@@ -40,7 +40,9 @@ api.put(
   [
     validateJWT,
     check("username", "El username es obligatorio").not().isEmpty(),
-
+    check("password", "El password debe ser mayor a 6 digitos").isLength({
+      min: 6,
+    }),
     check("email", "El email es obligatorio").not().isEmpty(),
     validateParams,
   ],
@@ -52,4 +54,5 @@ api.post("/login", loginUser);
 api.put("/mascota/:id", agregarMascota);
 api.delete("/mascota-delete/:id", eliminarMascota);
 api.put("/editar-mascota/:id", editarMascota);
+
 module.exports = api;

@@ -71,7 +71,7 @@ const readUsers = async (req, res) => {
     if (!users) {
       res.status(404).send({ message: "No hay usuarios disponibles" });
     } else {
-      res.status(200).json({ users: users });
+      res.status(200).json({ users: users, comentario: "Hola " });
     }
   } catch (err) {
     res.status(404).send({
@@ -87,14 +87,14 @@ const updateUser = async (req, res) => {
       const id = req.params.id;
       const userEdit = { ...req.body };
       //Encriptar Contraseña
-      /*userEdit.password = userEdit.password
+      userEdit.password = userEdit.password
         ? bcrypt.hashSync(userEdit.password, bcrypt.genSaltSync())
-        : userEdit.password;*/
+        : userEdit.password;
       const userComplete = await User.findByIdAndUpdate(id, userEdit, {
         new: true,
       });
       if (userComplete) {
-        const token = await generateJWT(
+        const token = generateJWT(
           userComplete.id,
           userComplete.username,
           userComplete.email

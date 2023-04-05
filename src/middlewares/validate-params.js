@@ -6,6 +6,7 @@ const validateParams = async (req, res, next) => {
     return res.status(400).send({
       ok: false,
       errors: errors.mapped(),
+      message: errors.mapped(),
     });
   }
 
