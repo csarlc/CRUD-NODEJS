@@ -1,5 +1,4 @@
 "use strict";
-const multer = require("multer");
 const { Router } = require("express");
 const {
   createUser,
