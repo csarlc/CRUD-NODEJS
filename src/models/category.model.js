@@ -11,6 +11,4 @@ const CategorySchema = Schema({
   },
 });
 
-module.exports = mongoose.model("categories", CategorySchema, [
-  { name: "default", description: "categoria por defecto" },
-]);
+module.exports = mongoose.model("categories", CategorySchema);
